@@ -1,2 +1,0 @@
-web: gunicorn music.wsgi --chdir music
-
