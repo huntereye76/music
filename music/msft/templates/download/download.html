@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>YTMP3 — Convert YouTube to MP3 / MP4</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background: #0f1724;
+      color: #e6eef8;
+      font-family: "Poppins",sans-serif;
+      min-height: 100vh;
+    }
+    .topbar { padding: 22px 0; }
+    .logo { height: 48px; }
+    .card-converter {
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px;
+      padding: 26px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    }
+    .btn-toggle {
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-weight:600;
+    }
+    .btn-convert {
+      background: linear-gradient(90deg,#0477ff,#1ec2ff);
+      color:white;
+      border:none;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-weight:700;
+    }
+    .status-box {
+      margin-top:18px;
+      min-height:72px;
+      border-radius:8px;
+      background: rgba(0,0,0,0.25);
+      padding:12px;
+      font-size:15px;
+    }
+    .status-step { margin:6px 0; }
+    .spinner {
+      width:32px;height:32px;border-radius:50%;
+      border:4px solid rgba(255,255,255,0.12); border-top-color:#1ec2ff;
+      animation:spin 0.8s linear infinite; display:inline-block; vertical-align:middle;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .muted { color:#9fb0c8; }
+    .logo-wrap { display:flex; align-items:center; gap:12px; }
+    @media(max-width:600px){ .btn-convert{width:100%} }
+  </style>
+</head>
+<body>
+
+  <div class="container py-4">
+    <div class="row topbar align-items-center">
+      <div class="col-6 logo-wrap">
+        <!-- developer-provided image path used below -->
+        <img src="/mnt/data/f43736f5-e768-47e9-bff1-91f87373c426.png" alt="logo" class="logo">
+        <div>
+          <div style="font-weight:800">YtMp3</div>
+          <div class="muted" style="font-size:12px">Fast • Simple • Safe</div>
+        </div>
+      </div>
+      <div class="col-6 text-end">
+        <a href="#" class="muted me-3">Home</a>
+        <a href="#" class="muted">FAQ</a>
+      </div>
+    </div>
+
+    <div class="row justify-content-center mt-4">
+      <div class="col-lg-8 col-md-10">
+        <div class="card-converter">
+
+          <h3 class="mb-2">Convert YouTube</h3>
+          <p class="muted mb-3">Choose MP3 or MP4, click Convert — we will auto-select best quality and start download.</p>
+
+          <div class="mb-3">
+            <input id="ytLink" type="text" class="form-control" placeholder="Paste YouTube video URL (https://youtube.com/...)">
+          </div>
+
+          <div class="d-flex gap-2 align-items-center mb-3">
+            <div class="btn-group" role="group">
+              <button id="btnMp3" class="btn btn-toggle btn-outline-light active">MP3</button>
+              <button id="btnMp4" class="btn btn-toggle btn-outline-light">MP4</button>
+            </div>
+            <button id="convertBtn" class="btn btn-convert ms-auto">Convert</button>
+          </div>
+
+          <div id="preview" style="display:none" class="d-flex gap-3 align-items-center">
+            <img id="thumb" src="" alt="" style="width:110px;border-radius:6px">
+            <div>
+              <div id="title" style="font-weight:700"></div>
+              <div id="meta" class="muted" style="font-size:13px"></div>
+            </div>
+          </div>
+
+          <div id="status" class="status-box mt-3">
+            <div class="muted">Status will appear here after you click Convert.</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="result-box mt-4" id="resultBox" style="display:none;">
+    <div class="card p-3" style="background:#1e2633;border-radius:12px;">
+        <h4 id="videoTitle" style="color:white;"></h4>
+        <img id="videoThumb" src="" style="width:200px;border-radius:10px;margin-top:10px;">
+        <p id="videoDuration" style="color:#bbb;font-size:14px;margin-top:10px;"></p>
+
+        <button id="downloadBtn" class="btn btn-primary mt-3" style="width:200px;">Download</button>
+    </div>
+</div>
+
+<script>
+function convertVideo() {
+    const url = document.getElementById("videoUrl").value;
+    const format = window.currentFormat || "mp3";
+
+    document.getElementById("status").innerHTML =
+        `<div class='alert alert-info'>Fetching info…</div>`;
+
+    fetch(`/fetch-info/?url=${encodeURIComponent(url)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            // Show info
+            document.getElementById("resultBox").style.display = "block";
+            document.getElementById("videoTitle").innerText = data.title;
+            document.getElementById("videoThumb").src = data.thumbnail;
+            document.getElementById("videoDuration").innerText =
+                "Duration: " + (data.duration || "?") + " sec";
+
+            // set download button link
+            let dl = format === "mp3" ? data.download_url_mp3 : data.download_url_mp4;
+
+            document.getElementById("downloadBtn").onclick = function () {
+                window.location.href = dl;
+            }
+
+            document.getElementById("status").innerHTML =
+                `<div class='alert alert-success'>Ready! Click download.</div>`;
+        });
+}
+
+function setFormat(f) {
+    window.currentFormat = f;
+}
+</script>
+
+
+
+
+
+
+
+
+
+
+<script>
+  let selectedFormat = "mp3"; // default
+
+  document.getElementById("btnMp3").addEventListener("click", () => {
+    selectedFormat = "mp3";
+    document.getElementById("btnMp3").classList.add("active");
+    document.getElementById("btnMp4").classList.remove("active");
+  });
+  document.getElementById("btnMp4").addEventListener("click", () => {
+    selectedFormat = "mp4";
+    document.getElementById("btnMp4").classList.add("active");
+    document.getElementById("btnMp3").classList.remove("active");
+  });
+
+  async function fetchInfo(url) {
+    // optional: call backend endpoint to fetch thumbnail + title if you implement it
+    // Right now we try a best-effort fetch route `/api/get-info/?url=...` if present
+    try {
+      const res = await fetch(`/api/get-info/?url=${encodeURIComponent(url)}`);
+      if (!res.ok) return null;
+      const j = await res.json();
+      return j;
+    } catch(e) {
+      return null;
+    }
+  }
+
+  document.getElementById("convertBtn").addEventListener("click", async function () {
+    const url = document.getElementById("ytLink").value.trim();
+    const status = document.getElementById("status");
+    const preview = document.getElementById("preview");
+    const thumb = document.getElementById("thumb");
+    const title = document.getElementById("title");
+    const meta = document.getElementById("meta");
+
+    if (!url) {
+      status.innerHTML = `<div style="color:#ffcccb">Please paste a valid YouTube URL.</div>`;
+      return;
+    }
+
+    // show quick preview if backend supports /api/get-info/
+    status.innerHTML = `<div class="status-step"><span class="spinner"></span> Fetching video info…</div>`;
+    preview.style.display = "none";
+
+    const info = await fetchInfo(url);
+    if (info && info.title) {
+      thumb.src = info.thumbnail || "";
+      title.textContent = info.title;
+      meta.textContent = `${info.duration || "Unknown duration"} • ${info.uploader || ""}`;
+      preview.style.display = "flex";
+    }
+
+    // staged messages (these are UI-only; server will actually do the work when the download URL is requested)
+    status.innerHTML = `<div class="status-step"><span class="spinner"></span> Fetching video (from YouTube)…</div>`;
+    await sleep(800);
+
+    status.innerHTML = `<div class="status-step"><span class="spinner"></span> Converting to ${selectedFormat.toUpperCase()} (best quality)…</div>`;
+    await sleep(900);
+
+    status.innerHTML = `<div class="status-step"><span class="spinner"></span> Extracting and preparing file…</div>`;
+    await sleep(800);
+
+    status.innerHTML = `<div class="status-step"><span class="spinner"></span> Finalizing and starting download…</div>`;
+
+    // Start actual download: this triggers the Django endpoint which will prepare and return the file.
+    // The endpoint handles best-quality selection: MP3 -> best audio -> converted to 320kbps MP3
+    // MP4 -> best video+audio limited to <=1080p.
+    const downloadUrl = `/download-mp3/?url=${encodeURIComponent(url)}&format=${encodeURIComponent(selectedFormat)}`;
+
+    // navigate to downloadUrl — browser will show a download once server returns the file response.
+    window.location.href = downloadUrl;
+  });
+
+  function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+</script>
+
+</body>
+</html>
